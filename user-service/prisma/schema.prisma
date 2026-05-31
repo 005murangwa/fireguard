@@ -1,0 +1,45 @@
+// =============================================================================
+// FireGuard LTD — User Service Prisma Schema
+// =============================================================================
+// WHAT:  Defines the User model only — same fields as auth-service.
+// WHY:   Admin-only user management reads/writes the shared `users` table
+//        created by database/init.sql; schema must stay in sync with auth.
+// HOW:   Run `npm run db:generate` after edits; tables exist via db:setup.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Role enum mirrors auth-service and MySQL ENUM on users.role.
+/// ADMIN     — full platform access (only role allowed on this service's routes)
+/// INSPECTOR — field inspections (managed via assign-role endpoint)
+/// CLIENT    — registered customers who own extinguishers
+enum Role {
+  ADMIN
+  INSPECTOR
+  CLIENT
+}
+
+/// Core identity record — identical to auth-service User model.
+/// Password is bcrypt-hashed; never returned in API responses.
+/// isVerified reflects OTP email verification status from auth-service.
+model User {
+  id          Int      @id @default(autoincrement())
+  firstName   String   @db.VarChar(100)
+  lastName    String   @db.VarChar(100)
+  email       String   @unique @db.VarChar(255)
+  phoneNumber String   @db.VarChar(20)
+  password    String   @db.VarChar(255)
+  role        Role     @default(CLIENT)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}

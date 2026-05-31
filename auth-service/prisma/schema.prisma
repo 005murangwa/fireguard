@@ -1,0 +1,58 @@
+// =============================================================================
+// FireGuard LTD — Auth Service Prisma Schema
+// =============================================================================
+// WHAT:  Defines User and OTPVerification models for the auth microservice.
+// WHY:   Prisma generates a type-safe client and keeps the schema in sync with
+//        the shared MySQL database created by database/init.sql.
+// HOW:   Run `npm run db:generate` after edits; tables are created by db:setup.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Role enum mirrors the MySQL ENUM on the users table.
+/// ADMIN    — full platform access
+/// INSPECTOR — field inspections (FireGuard LTD staff)
+/// CLIENT   — registered customers who own extinguishers
+enum Role {
+  ADMIN
+  INSPECTOR
+  CLIENT
+}
+
+/// Core identity record. Password is stored bcrypt-hashed; never returned in API.
+/// isVerified must be true before login succeeds (OTP flow sets this flag).
+model User {
+  id          Int      @id @default(autoincrement())
+  firstName   String   @db.VarChar(100)
+  lastName    String   @db.VarChar(100)
+  email       String   @unique @db.VarChar(255)
+  phoneNumber String   @db.VarChar(20)
+  password    String   @db.VarChar(255)
+  role        Role     @default(CLIENT)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// One-time password records for email verification after signup.
+/// otpCode is 6 digits; expirationTime is checked on verify-otp.
+model OTPVerification {
+  id             Int      @id @default(autoincrement())
+  otpCode        String   @db.VarChar(6)
+  email          String   @db.VarChar(255)
+  expirationTime DateTime
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([email])
+  @@map("otp_verifications")
+}

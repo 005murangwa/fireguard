@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model PurchaseOrder {
+  id              Int                 @id @default(autoincrement())
+  clientId        Int
+  orderNumber     String              @unique @db.VarChar(50)
+  status          OrderStatus         @default(PENDING)
+  totalQuantity   Int                 @default(0)
+  notes           String?             @db.Text
+  rejectionReason String?             @db.Text
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  items           PurchaseOrderItem[]
+
+  @@index([clientId])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id               Int           @id @default(autoincrement())
+  purchaseOrderId  Int
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  extinguisherType String        @db.VarChar(100)
+  quantity         Int           @default(1)
+
+  @@index([purchaseOrderId])
+  @@map("purchase_order_items")
+}

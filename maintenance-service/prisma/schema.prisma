@@ -1,0 +1,43 @@
+// =============================================================================
+// FireGuard LTD - Maintenance Service Prisma Schema
+// =============================================================================
+// WHAT: Maps to the shared `maintenance_records` table in fireguard_ltd MySQL database.
+// WHY:  Tracks scheduled and completed maintenance work on fire extinguishers.
+// HOW:  Run `npm run db:generate` after schema changes.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Lifecycle states for a maintenance work order
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model MaintenanceRecord {
+  id               Int               @id @default(autoincrement())
+  /// Business code linking to fire_extinguishers.extinguisherCode
+  extinguisherCode String            @db.VarChar(50)
+  /// When maintenance is planned or was performed
+  maintenanceDate  DateTime
+  /// Work description (parts replaced, pressure test, etc.)
+  description      String            @db.Text
+  /// Name of assigned technician
+  technician       String            @db.VarChar(100)
+  status           MaintenanceStatus @default(SCHEDULED)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([extinguisherCode])
+  @@index([status])
+  @@map("maintenance_records")
+}

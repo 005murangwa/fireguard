@@ -1,0 +1,46 @@
+// =============================================================================
+// FireGuard LTD - Fire Extinguisher Service Prisma Schema
+// =============================================================================
+// WHAT: Defines the fire_extinguishers table used by this microservice.
+// WHY:  Tracks physical extinguisher units, QR codes, and client assignments.
+// NOTE: Table name matches database/init.sql (fire_extinguishers).
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Lifecycle status of a fire extinguisher unit.
+enum ExtinguisherStatus {
+  ACTIVE
+  EXPIRED
+  UNDER_MAINTENANCE
+  INSPECTION_DUE
+}
+
+/// Physical fire extinguisher record with QR tracking and client assignment.
+model FireExtinguisher {
+  id                   Int                @id @default(autoincrement())
+  extinguisherCode     String             @unique @db.VarChar(50)
+  type                 String             @db.VarChar(100)
+  manufacturer         String             @db.VarChar(100)
+  capacity             String             @db.VarChar(50)
+  installationLocation String             @db.VarChar(255)
+  manufacturingDate    DateTime
+  expirationDate       DateTime
+  status               ExtinguisherStatus @default(ACTIVE)
+  assignedClientId     Int?
+  qrCodeData           String?            @db.Text
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([status])
+  @@index([expirationDate])
+  @@index([assignedClientId])
+  @@map("fire_extinguishers")
+}

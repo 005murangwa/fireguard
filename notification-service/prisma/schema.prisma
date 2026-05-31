@@ -1,0 +1,47 @@
+// =============================================================================
+// FireGuard LTD — Notification Service Prisma Schema
+// =============================================================================
+// Maps to shared MySQL database `fireguard_ltd` (see database/init.sql).
+//
+// Notification      — persisted dashboard alerts shown in the client/admin UI.
+// NotificationDedup — prevents sending the same alert twice for the same
+//                     user + extinguisher + alert type combination.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Dashboard notification record delivered to a specific user.
+model Notification {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  title            String   @db.VarChar(255)
+  message          String   @db.Text
+  isRead           Boolean  @default(false)
+  notificationType String   @default("GENERAL") @db.VarChar(50)
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+/// Duplicate-prevention ledger for automated cron alerts.
+/// Unique constraint on (userId, extinguisherCode, alertType) ensures we
+/// never spam the same user about the same extinguisher alert twice.
+model NotificationDedup {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  extinguisherCode String   @db.VarChar(50)
+  alertType        String   @db.VarChar(50)
+  createdAt        DateTime @default(now())
+
+  @@unique([userId, extinguisherCode, alertType], name: "notification_dedup_unique")
+  @@map("notification_dedup")
+}

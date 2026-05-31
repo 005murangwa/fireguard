@@ -1,0 +1,25 @@
+{
+  // ===========================================================================
+  // FireGuard LTD — Auth Service TypeScript Configuration
+  // WHAT: Compiler options for src/ → dist/ build output.
+  // WHY:  Strict mode catches type errors before runtime; CommonJS matches Node.
+  // HOW:  `npm run build` runs tsc; `npm run dev` uses tsx (no emit).
+  // ===========================================================================
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

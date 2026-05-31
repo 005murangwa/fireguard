@@ -1,0 +1,39 @@
+// =============================================================================
+// FireGuard LTD - Inspection Service Prisma Schema
+// =============================================================================
+// WHAT: Maps to the shared `inspections` table in fireguard_ltd MySQL database.
+// WHY:  Each row is a field inspection performed by an INSPECTOR on an extinguisher.
+// HOW:  Run `npm run db:generate` after schema changes.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Inspection {
+  id                 Int      @id @default(autoincrement())
+  /// Unique business code of the extinguisher (matches fire_extinguishers.extinguisherCode)
+  extinguisherCode   String   @db.VarChar(50)
+  /// User id of the inspector who performed this inspection (from JWT userId)
+  inspectorId        Int
+  /// When the physical inspection took place
+  inspectionDate     DateTime
+  /// Observed physical condition of the unit
+  condition          String   @db.VarChar(100)
+  /// Free-text notes from the inspector
+  remarks            String?  @db.Text
+  /// Scheduled date for the next mandatory inspection
+  nextInspectionDate DateTime
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([extinguisherCode])
+  @@index([inspectorId])
+  @@index([nextInspectionDate])
+  @@map("inspections")
+}

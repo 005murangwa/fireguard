@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum FollowUpStatus {
+  PENDING
+  CONTACTED
+  UNREACHABLE
+  ESCALATED
+  RESOLVED
+}
+
+model FollowUp {
+  id             Int            @id @default(autoincrement())
+  clientId       Int
+  extinguisherId Int
+  status         FollowUpStatus @default(PENDING)
+  notes          String?        @db.Text
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+  @@map("follow_ups")
+}
