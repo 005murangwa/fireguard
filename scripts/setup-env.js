@@ -15,6 +15,7 @@ const targets = [
   'maintenance-service',
   'notification-service',
   'reporting-service',
+  'order-service',
 ];
 
 for (const service of targets) {

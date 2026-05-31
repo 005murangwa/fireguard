@@ -19,6 +19,7 @@ import {
   UpdateMaintenanceDto,
   CompleteMaintenanceDto,
 } from '../dto/maintenance.dto';
+import { getClientExtinguisherCodes } from '../services/extinguisher-client.service';
 
 type ValidatedParamsRequest<T> = Request & { validatedParams?: T };
 

@@ -11,6 +11,8 @@ import type {
   Notification,
   AdminDashboardStats,
   Paginated,
+  CatalogItem,
+  PurchaseOrder,
 } from '../types';
 
 /** Backend may return a plain array or { data: T[] } — always normalize to T[]. */
@@ -40,6 +42,7 @@ export const userApi = {
   update: (id: number, data: Partial<User>) => api.patch(`/users/${id}`, data),
   delete: (id: number) => api.delete(`/users/${id}`),
   assignRole: (id: number, role: string) => api.patch(`/users/${id}/role`, { role }),
+  getStaff: () => api.get<User[]>('/users/staff'),
 };
 
 export const extinguisherApi = {
@@ -93,4 +96,14 @@ export const reportApi = {
 
 export const dashboardApi = {
   getStats: () => api.get<AdminDashboardStats>('/dashboard/stats'),
+};
+
+export const orderApi = {
+  getCatalog: () => api.get<CatalogItem[]>('/orders/catalog'),
+  getAll: () => api.get<PurchaseOrder[]>('/orders'),
+  create: (data: { items: { extinguisherType: string; quantity: number }[]; notes?: string }) =>
+    api.post<PurchaseOrder>('/orders', data),
+  approve: (id: number) => api.patch<PurchaseOrder>(`/orders/${id}/approve`),
+  reject: (id: number, rejectionReason: string) =>
+    api.patch<PurchaseOrder>(`/orders/${id}/reject`, { rejectionReason }),
 };

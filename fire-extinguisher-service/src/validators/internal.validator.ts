@@ -57,6 +57,20 @@ export const clientIdParamSchema = z.object({
   clientId: z.coerce.number().int().positive(),
 });
 
+/** POST /internal/from-order request body */
+export const fromOrderBodySchema = z.object({
+  clientId: z.number().int().positive(),
+  orderNumber: z.string().trim().min(1).max(50),
+  items: z
+    .array(
+      z.object({
+        type: z.string().trim().min(1).max(100),
+        quantity: z.number().int().min(1).max(100),
+      })
+    )
+    .min(1),
+});
+
 
 
 export type ExtinguisherCodeParam = z.infer<typeof extinguisherCodeParamSchema>;

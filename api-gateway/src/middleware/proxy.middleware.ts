@@ -11,7 +11,7 @@ const EXT = process.env.FIRE_EXTINGUISHER_SERVICE_URL || 'http://localhost:5003'
 const INSP = process.env.INSPECTION_SERVICE_URL || 'http://localhost:5004';
 const MAINT = process.env.MAINTENANCE_SERVICE_URL || 'http://localhost:5005';
 const NOTIFY = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5006';
-const REPORT = process.env.REPORTING_SERVICE_URL || 'http://localhost:5007';
+const ORDER = process.env.ORDER_SERVICE_URL || 'http://localhost:5008';
 
 function createProxy(target: string, rewrite: (path: string) => string) {
   const options: Options = {
@@ -42,3 +42,4 @@ export const inspectionProxy = createProxy(INSP, (p) => `/inspections${p}`);
 export const maintenanceProxy = createProxy(MAINT, (p) => `/maintenance${p}`);
 export const notificationProxy = createProxy(NOTIFY, (p) => `/notifications${p}`);
 export const reportingProxy = createProxy(REPORT, (p) => `/reports${p}`);
+export const orderProxy = createProxy(ORDER, (p) => `/orders${p}`);

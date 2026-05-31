@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 export interface JwtPayload {
   userId: number;
   email: string;
-  role: 'ADMIN' | 'CLIENT';
+  role: 'ADMIN' | 'INSPECTOR' | 'CLIENT';
 }
 
 declare global {
@@ -36,7 +36,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   }
 }
 
-export function requireRole(...roles: Array<'ADMIN' | 'CLIENT'>) {
+export function requireRole(...roles: Array<'ADMIN' | 'INSPECTOR' | 'CLIENT'>) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {
       res.status(403).json({ error: 'Access denied' });

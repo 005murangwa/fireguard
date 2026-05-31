@@ -18,6 +18,7 @@ import {
   CreateInspectionDto,
   UpdateInspectionDto,
 } from '../dto/inspection.dto';
+import { getClientExtinguisherCodes } from '../services/extinguisher-client.service';
 
 type ValidatedParamsRequest<T> = Request & { validatedParams?: T };
 

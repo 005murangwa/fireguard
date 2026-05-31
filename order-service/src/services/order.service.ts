@@ -2,40 +2,49 @@ import axios from 'axios';
 import { OrderStatus } from '@prisma/client';
 import prisma from '../lib/prisma';
 import { CreateOrderDto, RejectOrderDto } from '../dto/order.dto';
+import { EXTinguisher_CATALOG } from '../data/catalog';
 
 const extinguisherServiceUrl =
-  process.env.EXTinguisher_SERVICE_URL || 'http://localhost:5003';
+  process.env.FIRE_EXTINGUISHER_SERVICE_URL || 'http://localhost:5003';
 const notificationServiceUrl =
-  process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5004';
+  process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5006';
 
 function generateOrderNumber(): string {
-  const date = new Date();
-  const stamp = date.toISOString().slice(0, 10).replace(/-/g, '');
+  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const random = Math.floor(Math.random() * 9000 + 1000);
-  return `PO-${stamp}-${random}`;
+  return `FG-${stamp}-${random}`;
 }
 
-function generateSerialNumber(orderNumber: string, itemId: number, index: number): string {
-  return `${orderNumber}-${itemId}-${index + 1}`;
-}
-
-async function notifyClient(clientId: number, message: string): Promise<void> {
+async function notifyUser(userId: number, title: string, message: string): Promise<void> {
   try {
-    await axios.post(`${notificationServiceUrl}/notifications/email`, {
-      clientId,
-      subject: 'Fire Extinguisher System Update',
-      html: `<p>${message}</p>`,
+    await axios.post(`${notificationServiceUrl}/notifications/internal/send`, {
+      userId,
+      title,
+      message,
+      notificationType: 'ORDER',
+      sendEmail: true,
     });
   } catch (error) {
-    console.error('Failed to notify client:', error);
+    console.error('[order-service] Failed to send notification:', error);
   }
 }
 
+export function getCatalog() {
+  return EXTinguisher_CATALOG;
+}
+
 export async function createOrder(clientId: number, data: CreateOrderDto) {
+  for (const item of data.items) {
+    const match = EXTinguisher_CATALOG.find((c) => c.type === item.extinguisherType);
+    if (!match) {
+      throw new Error(`Unknown extinguisher type: ${item.extinguisherType}`);
+    }
+  }
+
   const totalQuantity = data.items.reduce((sum, item) => sum + item.quantity, 0);
   const orderNumber = generateOrderNumber();
 
-  return prisma.purchaseOrder.create({
+  const order = await prisma.purchaseOrder.create({
     data: {
       clientId,
       orderNumber,
@@ -51,6 +60,14 @@ export async function createOrder(clientId: number, data: CreateOrderDto) {
     },
     include: { items: true },
   });
+
+  await notifyUser(
+    clientId,
+    'Order Submitted',
+    `Your order ${orderNumber} for ${totalQuantity} extinguisher(s) was submitted and is pending admin approval.`
+  );
+
+  return order;
 }
 
 export async function getAllOrders(clientId?: number) {
@@ -82,22 +99,14 @@ export async function approveOrder(id: number) {
     throw new Error('Only pending orders can be approved');
   }
 
-  const purchaseDate = new Date();
-  const expiryDate = new Date();
-  expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-
-  for (const item of order.items) {
-    for (let i = 0; i < item.quantity; i++) {
-      await axios.post(`${extinguisherServiceUrl}/extinguishers`, {
-        clientId: order.clientId,
-        serialNumber: generateSerialNumber(order.orderNumber, item.id, i),
-        extinguisherType: item.extinguisherType,
-        quantity: 1,
-        purchaseDate: purchaseDate.toISOString(),
-        expiryDate: expiryDate.toISOString(),
-      });
-    }
-  }
+  await axios.post(`${extinguisherServiceUrl}/internal/from-order`, {
+    clientId: order.clientId,
+    orderNumber: order.orderNumber,
+    items: order.items.map((item) => ({
+      type: item.extinguisherType,
+      quantity: item.quantity,
+    })),
+  });
 
   const updated = await prisma.purchaseOrder.update({
     where: { id },
@@ -105,9 +114,10 @@ export async function approveOrder(id: number) {
     include: { items: true },
   });
 
-  await notifyClient(
+  await notifyUser(
     order.clientId,
-    `Your purchase order ${order.orderNumber} has been approved. ${order.totalQuantity} extinguisher(s) are now registered and monitoring has started.`
+    'Order Approved',
+    `Your order ${order.orderNumber} has been approved. ${order.totalQuantity} extinguisher(s) are now registered to your account.`
   );
 
   return updated;
@@ -133,37 +143,22 @@ export async function rejectOrder(id: number, data: RejectOrderDto) {
     include: { items: true },
   });
 
-  await notifyClient(
+  await notifyUser(
     order.clientId,
-    `Your purchase order ${order.orderNumber} was rejected. Reason: ${data.rejectionReason}`
+    'Order Rejected',
+    `Your order ${order.orderNumber} was rejected. Reason: ${data.rejectionReason}`
   );
 
   return updated;
 }
 
 export async function getOrderStats() {
-  const [total, pending, approved, rejected, completed] = await Promise.all([
+  const [total, pending, rejected, completed] = await Promise.all([
     prisma.purchaseOrder.count(),
     prisma.purchaseOrder.count({ where: { status: OrderStatus.PENDING } }),
-    prisma.purchaseOrder.count({ where: { status: OrderStatus.APPROVED } }),
     prisma.purchaseOrder.count({ where: { status: OrderStatus.REJECTED } }),
     prisma.purchaseOrder.count({ where: { status: OrderStatus.COMPLETED } }),
   ]);
 
-  return { total, pending, approved, rejected, completed };
-}
-
-export async function getMonthlyOrders() {
-  const orders = await prisma.purchaseOrder.findMany({
-    select: { createdAt: true },
-    orderBy: { createdAt: 'asc' },
-  });
-
-  const monthMap = new Map<string, number>();
-  for (const order of orders) {
-    const month = order.createdAt.toISOString().slice(0, 7);
-    monthMap.set(month, (monthMap.get(month) || 0) + 1);
-  }
-
-  return Array.from(monthMap.entries()).map(([month, count]) => ({ month, count }));
+  return { total, pending, rejected, completed };
 }

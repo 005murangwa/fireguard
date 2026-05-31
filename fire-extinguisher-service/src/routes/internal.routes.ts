@@ -32,6 +32,8 @@ import {
 
   clientIdParamSchema,
 
+  fromOrderBodySchema,
+
 } from '../validators/internal.validator';
 
 import {
@@ -49,6 +51,8 @@ import {
   statsHandler,
 
   clientCodesHandler,
+
+  fromOrderHandler,
 
 } from '../controllers/internal.controller';
 
@@ -283,6 +287,8 @@ router.get('/expired', expiredHandler);
  */
 
 router.get('/stats', statsHandler);
+
+router.post('/from-order', validateBody(fromOrderBodySchema), fromOrderHandler);
 
 router.get(
   '/clients/:clientId/extinguisher-codes',

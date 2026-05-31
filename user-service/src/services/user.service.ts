@@ -71,6 +71,15 @@ export async function listUsers(query: ListUsersQuery): Promise<PaginatedUsers> 
   };
 }
 
+/** Lists FireGuard staff (admins and inspectors) for client portal directory. */
+export async function listStaff(): Promise<UserResponse[]> {
+  const users = await prisma.user.findMany({
+    where: { role: { in: [Role.ADMIN, Role.INSPECTOR] } },
+    orderBy: [{ role: 'asc' }, { firstName: 'asc' }],
+  });
+  return users.map(formatUser);
+}
+
 /**
  * Retrieves a single user by primary key.
  *

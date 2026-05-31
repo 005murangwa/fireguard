@@ -21,6 +21,7 @@ import {
   maintenanceProxy,
   notificationProxy,
   reportingProxy,
+  orderProxy,
 } from './middleware/proxy.middleware';
 import { swaggerDocument } from './swagger';
 import { getDashboardStats } from './controllers/dashboard.controller';
@@ -52,6 +53,7 @@ app.use('/api/inspections', jwtMiddleware, inspectionProxy);
 app.use('/api/maintenance', jwtMiddleware, maintenanceProxy);
 app.use('/api/notifications', jwtMiddleware, notificationProxy);
 app.use('/api/reports', jwtMiddleware, reportingProxy);
+app.use('/api/orders', jwtMiddleware, orderProxy);
 
 /** Admin dashboard aggregate stats. */
 app.get('/api/dashboard/stats', jwtMiddleware, getDashboardStats);

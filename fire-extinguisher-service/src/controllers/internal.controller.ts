@@ -32,6 +32,8 @@ import {
 
   getExtinguisherCodesByClientId,
 
+  createExtinguishersFromOrder,
+
   InternalServiceError,
 
 } from '../services/internal.service';
@@ -193,6 +195,16 @@ export async function clientCodesHandler(
     const { clientId } = req.validatedParams!;
     const codes = await getExtinguisherCodesByClientId(clientId);
     res.json(codes);
+  } catch (error) {
+    handleError(error, res);
+  }
+}
+
+/** POST /internal/from-order — fulfill approved client purchase orders */
+export async function fromOrderHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const created = await createExtinguishersFromOrder(req.body);
+    res.status(201).json({ created: created.length, extinguishers: created });
   } catch (error) {
     handleError(error, res);
   }

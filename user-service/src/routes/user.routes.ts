@@ -19,6 +19,7 @@ import {
 } from '../validators/user.validator';
 import {
   listUsersHandler,
+  listStaffHandler,
   getStatsHandler,
   getUserHandler,
   updateUserHandler,
@@ -28,8 +29,11 @@ import {
 
 const router = Router();
 
-// Every route in this service is admin-only — apply auth + role guard globally
 router.use(authMiddleware);
+
+/** Staff directory — visible to all authenticated users (clients see FireGuard team). */
+router.get('/users/staff', listStaffHandler);
+
 router.use(requireRole(Role.ADMIN));
 
 /**

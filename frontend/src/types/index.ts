@@ -72,6 +72,32 @@ export interface AdminDashboardStats {
   notificationsSent: number;
 }
 
+export interface CatalogItem {
+  type: string;
+  manufacturer: string;
+  capacity: string;
+  description: string;
+  unitPrice: number;
+}
+
+export interface PurchaseOrderItem {
+  id: number;
+  extinguisherType: string;
+  quantity: number;
+}
+
+export interface PurchaseOrder {
+  id: number;
+  clientId: number;
+  orderNumber: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+  totalQuantity: number;
+  notes: string | null;
+  rejectionReason: string | null;
+  createdAt: string;
+  items: PurchaseOrderItem[];
+}
+
 /** Paginated list shape returned by fire-extinguisher-service GET /extinguishers */
 export interface Paginated<T> {
   data: T[];

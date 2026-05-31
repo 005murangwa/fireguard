@@ -6,6 +6,7 @@ import ConfirmDialog from './ConfirmDialog';
 const adminNav = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/users', label: 'Users', icon: '👥' },
+  { path: '/orders', label: 'Orders', icon: '🛒' },
   { path: '/extinguishers', label: 'Extinguishers', icon: '🧯' },
   { path: '/inspections', label: 'Inspections', icon: '🔍' },
   { path: '/maintenance', label: 'Maintenance', icon: '🔧' },
@@ -23,7 +24,9 @@ const inspectorNav = [
 
 const clientNav = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { path: '/orders', label: 'Order Extinguishers', icon: '🛒' },
   { path: '/extinguishers', label: 'My Extinguishers', icon: '🧯' },
+  { path: '/staff', label: 'Our Staff', icon: '👔' },
   { path: '/inspections', label: 'Inspection History', icon: '🔍' },
   { path: '/maintenance', label: 'Maintenance History', icon: '🔧' },
   { path: '/notifications', label: 'Notifications', icon: '🔔' },

@@ -11,6 +11,7 @@ import { Request, Response } from 'express';
 import { Role } from '@prisma/client';
 import {
   listUsers,
+  listStaff,
   getUserById,
   updateUser,
   deleteUser,
@@ -40,6 +41,18 @@ export async function listUsersHandler(
     const query = req.validatedQuery!;
     const result = await listUsers(query);
     res.json(result);
+  } catch (error) {
+    handleError(error, res);
+  }
+}
+
+/**
+ * GET /users/staff — FireGuard admins and inspectors (all authenticated roles).
+ */
+export async function listStaffHandler(_req: Request, res: Response): Promise<void> {
+  try {
+    const staff = await listStaff();
+    res.json(staff);
   } catch (error) {
     handleError(error, res);
   }

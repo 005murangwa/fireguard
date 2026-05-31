@@ -6,7 +6,7 @@ import {
   approveOrder,
   rejectOrder,
   getOrderStats,
-  getMonthlyOrders,
+  getCatalog,
 } from '../services/order.service';
 
 export async function create(req: Request, res: Response): Promise<void> {
@@ -91,21 +91,16 @@ export async function reject(req: Request, res: Response): Promise<void> {
   }
 }
 
+export async function catalog(_req: Request, res: Response): Promise<void> {
+  res.json(getCatalog());
+}
+
 export async function stats(_req: Request, res: Response): Promise<void> {
   try {
     const result = await getOrderStats();
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch stats' });
-  }
-}
-
-export async function monthly(_req: Request, res: Response): Promise<void> {
-  try {
-    const data = await getMonthlyOrders();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch data' });
   }
 }
 

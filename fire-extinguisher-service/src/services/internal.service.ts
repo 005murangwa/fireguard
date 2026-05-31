@@ -21,7 +21,7 @@ import { ExtinguisherStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
 
 import { formatExtinguisher, calculateStatus } from '../utils/extinguisher.util';
-
+import { createExtinguisher } from './extinguisher.service';
 import { FireExtinguisherResponse } from '../types';
 
 import { PatchStatusBody } from '../validators/internal.validator';
@@ -291,4 +291,43 @@ export async function getExtinguisherCodesByClientId(clientId: number): Promise<
   return records.map((r) => r.extinguisherCode);
 }
 
+const ORDER_TYPE_DEFAULTS: Record<string, { manufacturer: string; capacity: string }> = {
+  CO2: { manufacturer: 'Kidde', capacity: '5kg' },
+  Foam: { manufacturer: 'Ansul', capacity: '9L' },
+  'Dry Powder': { manufacturer: 'Amerex', capacity: '6kg' },
+  Water: { manufacturer: 'FireGuard', capacity: '9L' },
+};
+
+/** POST /internal/from-order — register units after admin approves a client purchase order. */
+export async function createExtinguishersFromOrder(input: {
+  clientId: number;
+  orderNumber: string;
+  items: { type: string; quantity: number }[];
+}): Promise<FireExtinguisherResponse[]> {
+  const created: FireExtinguisherResponse[] = [];
+  const manufacturingDate = new Date().toISOString().slice(0, 10);
+  const expirationDate = new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  for (const item of input.items) {
+    const defaults = ORDER_TYPE_DEFAULTS[item.type] || {
+      manufacturer: 'FireGuard',
+      capacity: 'Standard',
+    };
+
+    for (let i = 0; i < item.quantity; i++) {
+      const record = await createExtinguisher({
+        type: item.type,
+        manufacturer: defaults.manufacturer,
+        capacity: defaults.capacity,
+        installationLocation: `Order ${input.orderNumber} — site survey pending`,
+        manufacturingDate,
+        expirationDate,
+        assignedClientId: input.clientId,
+      });
+      created.push(record);
+    }
+  }
+
+  return created;
+}
 

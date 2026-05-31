@@ -126,6 +126,36 @@ CREATE TABLE IF NOT EXISTS notifications (
   KEY notifications_isRead_idx (isRead)
 );
 
+-- ---------------------------------------------------------------------------
+-- PURCHASE ORDERS (Order service) — clients request extinguishers from catalog
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS purchase_orders (
+  id INT NOT NULL AUTO_INCREMENT,
+  clientId INT NOT NULL,
+  orderNumber VARCHAR(50) NOT NULL,
+  status ENUM('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED') NOT NULL DEFAULT 'PENDING',
+  totalQuantity INT NOT NULL DEFAULT 0,
+  notes TEXT NULL,
+  rejectionReason TEXT NULL,
+  createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updatedAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY purchase_orders_orderNumber_key (orderNumber),
+  KEY purchase_orders_clientId_idx (clientId),
+  KEY purchase_orders_status_idx (status)
+);
+
+CREATE TABLE IF NOT EXISTS purchase_order_items (
+  id INT NOT NULL AUTO_INCREMENT,
+  purchaseOrderId INT NOT NULL,
+  extinguisherType VARCHAR(100) NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  PRIMARY KEY (id),
+  KEY purchase_order_items_purchaseOrderId_idx (purchaseOrderId),
+  CONSTRAINT purchase_order_items_order_fkey
+    FOREIGN KEY (purchaseOrderId) REFERENCES purchase_orders(id) ON DELETE CASCADE
+);
+
 -- Prevent duplicate expiry alert for same user + extinguisher + type
 CREATE TABLE IF NOT EXISTS notification_dedup (
   id INT NOT NULL AUTO_INCREMENT,
