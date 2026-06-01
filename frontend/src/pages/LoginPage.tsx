@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getApiErrorMessage } from '../lib/errors';
 
 export default function LoginPage() {
-  const { login, logout, isAuthenticated, user } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,28 +33,6 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold mt-4">FireGuard LTD</h1>
           <p className="text-gray-500">Sign in to your account</p>
         </div>
-
-        {isAuthenticated && user && (
-          <div className="bg-blue-50 text-blue-800 px-4 py-3 rounded-lg text-sm mb-4">
-            Signed in as <strong>{user.email}</strong>.
-            <div className="mt-2 flex gap-3">
-              <button
-                type="button"
-                onClick={() => navigate('/dashboard')}
-                className="text-blue-700 font-medium hover:underline"
-              >
-                Go to Dashboard
-              </button>
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="text-red-600 font-medium hover:underline"
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
